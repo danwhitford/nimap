@@ -79,8 +79,9 @@ for port in startPort..endPort:
     try:
         socket.connect(host, Port(port))
         let (laddr, lport) = socket.getLocalAddr()
-        let ipHeader = generateIpHeader("localhost", host)
-        let tcpHeader = generateTcpHeader(int(lport), port)
+        let (paddr, pport) = socket.getPeerAddr()
+        let ipHeader = generateIpHeader(laddr, paddr)
+        let tcpHeader = generateTcpHeader(int(lport), int(pport))
         socket.send(ipHeader & tcpHeader)
         let data = socket.recv(1024, timeout=5000)
         echo data
