@@ -1,7 +1,7 @@
 import net
 import parseopt
 from strutils import parseInt
-
+import nativesockets
 
 var foundOpen: seq[string]
 
@@ -37,11 +37,20 @@ if startPort == -1 or endPort == -1:
     echo "Must set startPort and endPort"
     quit(QuitFailure)
 
+var hostIp: string
+if host.isIpAddress():
+    hostIp = host
+else:
+    let aiAddr = getAddrInfo(host, Port(0))
+    hostIp = aiAddr.ai_addr.getAddrString()
+    freeaddrinfo(aiAddr)
+
 echo "Scanning ", host, " from ", startPort, " to ", endPort
 for port in startPort..endPort:
     let socket = newSocket()
-    try:
-        socket.connect(host, Port(port))
+
+    try:        
+        socket.connect(hostIp, Port(port))
         foundOpen.add($port)
     except:
         let m = getCurrentExceptionMsg()
@@ -49,8 +58,7 @@ for port in startPort..endPort:
         of "Connection refused":
             discard
         else:
-            echo "Could not connect to \"", host, "\". ", m 
-            quit(QuitFailure)
+            echo "Could not connect to \"", host, ":", port, "\". ", m 
     finally:
         socket.close()
 
