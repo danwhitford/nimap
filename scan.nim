@@ -56,6 +56,9 @@ proc wordToInt(w: string): int =
   let b = ord(w[1])
   return a + b
 
+proc getCarryOver(i: int): int =
+    return i shr 16
+
 proc generateTcpPseudoHeader(sourceIp: string, destIp: string, length: int): string =
     var header: string
     header.add("\x00\x06") # Protocol
@@ -81,9 +84,6 @@ proc generateTcpHeader(sourcePort: int, destinationPort: int): string =
     tcpHeader.add("\x50\x02\x71\x10") # Data Offset, Reserved, Flags | Window Size
     tcpHeader.add("\x00\x00\x00\x00") # Checksum | Urgent Pointer)
     return tcpHeader
-
-proc getCarryOver(i: int): int =
-    return i shr 16
 
 proc checksumForTcpHeader(sourceIp: string, sourcePort: int, destIp: string, destPort: int): string =
     let header = generateTcpPseudoHeader(sourceIp, destIp, 20) & generateTcpHeader(sourcePort, destPort)
@@ -122,7 +122,6 @@ assert "\x13\x8d" == intToWord(5005)
 echo "Scanning ", host, " from ", startPort, " to ", endPort
 for port in startPort..endPort:
     let socket = newSocket(AF_INET, SOCK_RAW, IPPROTO_RAW)
-    # socket.setSockOpt()
     try:
         socket.connect(host, Port(port))
         let (laddr, lport) = socket.getLocalAddr()
@@ -139,8 +138,8 @@ for port in startPort..endPort:
         of "Connection refused":
             discard
         else:
-            echo "Could not connect to \"", host, "\". ", m 
-            quit(QuitFailure)
+            echo "Could not connect to \"", host, ":", port, "\". ", m 
+            # quit(QuitFailure)
     finally:
         socket.close()
 
