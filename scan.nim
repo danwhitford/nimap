@@ -3,8 +3,6 @@ import parseopt
 from strutils import parseInt
 import nativesockets
 
-var foundOpen: seq[string]
-
 const banner = """
  _   _ ___ __  __    _    ____  
 | \ | |_ _|  \/  |  / \  |  _ \ 
@@ -44,8 +42,10 @@ else:
     let aiAddr = getAddrInfo(host, Port(0))
     hostIp = aiAddr.ai_addr.getAddrString()
     freeaddrinfo(aiAddr)
+assert hostIp.len > 0
 
 echo "Scanning ", host, " from ", startPort, " to ", endPort
+var foundOpen: seq[string]
 for port in startPort..endPort:
     let socket = newSocket()
 
